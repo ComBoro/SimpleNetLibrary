@@ -4,9 +4,6 @@ import com.sun.istack.internal.NotNull;
 
 import java.io.*;
 
-/**
- * Created by ComBoro on 6/18/2017.
- */
 public class Serializer {
 
     static ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -20,17 +17,26 @@ public class Serializer {
         }
     }
 
-    public static final byte[] serialize(@NotNull SerializableMessage message) throws IOException {
-        objectOutputStream.writeObject(message);
+    public static final byte[] serialize(@NotNull SerializableMessage<?> message) {
+        try {
+			objectOutputStream.writeObject(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
         byte[] arr = byteArrayOutputStream.toByteArray();
         byteArrayOutputStream.reset();
         return arr;
     }
 
-    public static final SerializableMessage deserialize(@NotNull byte[] data) throws IOException, ClassNotFoundException{
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
-        ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-        return (SerializableMessage) objectInputStream.readObject();
+    public static final SerializableMessage<?> deserialize(@NotNull byte[] data){
+        try {
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
+            ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+			return (SerializableMessage<?>) objectInputStream.readObject();
+		} catch (IOException | ClassNotFoundException e) {
+			e.printStackTrace();
+			return null;
+		}
     }
 
 }

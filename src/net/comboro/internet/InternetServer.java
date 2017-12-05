@@ -8,6 +8,7 @@ public abstract class InternetServer<T extends Client> extends Server<T>{
     protected final int port;
 
     public InternetServer(int port){
+    	super();
         this.port = port;
     }
 

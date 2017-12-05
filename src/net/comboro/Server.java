@@ -1,10 +1,19 @@
 package net.comboro;
 
+import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import net.comboro.encryption.aes.AESInformation;
+import net.comboro.encryption.rsa.RSA;
+import net.comboro.encryption.rsa.RSAInformation;
+import net.comboro.encryption.rsa.RSASecureMessage;
+import net.comboro.encryption.rsa.RSASecurePeer;
 
 public abstract class Server<T extends Client> {
 
@@ -37,24 +46,27 @@ public abstract class Server<T extends Client> {
 
         void onClientDisconnect(T client);
     }
-
+    
+    protected RSASecurePeer securePeer = null;
+    protected RSA rsa = null;
+    
     private final Object lock = new Object();
 
     protected ExecutorService serverExecutor;
 
-    private boolean active = false;
+    private boolean active = false, secure = false;
     protected List<T> clientList = new ArrayList<>();
-    private List<ServerListener<T>> serverListeners = new ArrayList<>();
+    protected List<ServerListener<T>> serverListeners = new ArrayList<>();
 
     protected Server() {
         serverExecutor = Executors.newSingleThreadExecutor();
     }
 
-    protected Executor getExecutor() {
+    @Deprecated protected Executor getExecutor() {
         return serverExecutor;
     }
 
-    public void sendAll(SerializableMessage message){
+    public void sendAll(SerializableMessage<Serializable> message){
         clientList.forEach(e -> e.send(message));
     }
 
@@ -65,11 +77,23 @@ public abstract class Server<T extends Client> {
             result = clientList.add(client);
             client.addListener(new Client.ClientListener.ClientAdapter(){
                 @Override
-                public void onReceive(SerializableMessage message) {
-                    serverListeners.forEach(e -> e.onClientInput(client, message));
+                public void onReceive(SerializableMessage<?> message) {
+                    fireClientInputEvent(client, message);
                 }
+                @Override
+                public void onConnectionError(java.io.IOException io) {
+                	removeClient(client);
+                };
             });
             client.fireConnectEvent();
+            
+            if(secure) {
+            	RSAInformation rsaInf = securePeer.getRSAInformation();
+            	SerializableMessage<RSAInformation> rsaMessage = new SerializableMessage<>(rsaInf);
+            	client.send(rsaMessage);
+            	System.out.println("RSA Information send");
+            } 
+            
             lock.notifyAll();
         }
         return result;
@@ -79,8 +103,25 @@ public abstract class Server<T extends Client> {
         return serverListeners.add(serverListener);
     }
 
-    public void fireClientInputEvent(T client, SerializableMessage message){
+    public void fireClientInputEvent(T client, SerializableMessage<?> message){
+    	
+    	if(message.getData() instanceof RSAInformation) {
+    		System.out.println("Received client RSA. Generating AES key");
+    		RSAInformation clientRSA = (RSAInformation) message.getData();
+    		RSAInformation serverRSA = securePeer.getRSAInformation();
+    		String key = UUID.randomUUID().toString();
+    		AESInformation aesInf = new AESInformation(key);
+    		RSASecureMessage sm = new RSASecureMessage(clientRSA, serverRSA, new SerializableMessage<>(aesInf));
+    		client.send(sm);
+    		System.out.println("AES information send. Key = " + key);
+    		return;
+    	} 
+    	
         serverListeners.forEach(e -> e.onClientInput(client, message));
+    }
+
+    public void fireClientDisconnectEvent(T client){
+        serverListeners.forEach(e -> e.onClientDisconnect(client));
     }
 
     public boolean removeClient(T client) {
@@ -94,16 +135,48 @@ public abstract class Server<T extends Client> {
         return result;
     }
 
+    abstract protected void notifyClientRemoval(T client);
+
     public boolean removeListener(ServerListener<T> listener) {
         return serverListeners.remove(listener);
+    }
+    
+    public boolean isSecure() {
+    	return secure;
+    }
+    
+    public void setSecure(boolean secure) {
+    	if(isActive()) 
+    		throw new IllegalArgumentException("Server is active");
+    	makeSecure();
+    	this.secure = secure;
+    }
+    
+    private void makeSecure() {
+    	rsa = new RSA();
+    	securePeer = new RSASecurePeer() {
+			
+			@Override
+			public RSAInformation getRSAInformation() {
+				return Server.this.rsa.getInformation();
+			}
+			
+			@Override
+		    public SerializableMessage<?> decrypt(RSASecureMessage message) {
+		    	BigInteger en = message.getNumber();
+		    	BigInteger de = rsa.decrypt(en);
+		    	byte[] data = de.toByteArray();
+		    	return Serializer.deserialize(data);
+		    }
+		};
     }
 
     public void startServer() throws Exception {
         active = true;
         serverExecutor.execute(() -> {
             try {
-                start();
                 serverListeners.forEach(e -> e.onServerStart());
+                start();
             } catch (Exception e) {
                 serverListeners.forEach(e1 -> e1.onServerStartError(e));
             }
@@ -123,11 +196,11 @@ public abstract class Server<T extends Client> {
     abstract protected void stop();
 
     public boolean isActive() {
-        return active;
+        return new Boolean(active);
     }
 
     public List<T> getClientList() {
-        return clientList;
+        return new ArrayList<T>(clientList);
     }
 
 }

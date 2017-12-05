@@ -3,6 +3,7 @@ package net.comboro.internet.tcp;
 import net.comboro.internet.InternetServer;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -10,13 +11,27 @@ public class ServerTCP extends InternetServer<ClientTCP> {
 
     private ServerSocket serverSocket;
 
+    private int backlog = 50;
+    private InetAddress bindAddr = null;
+
     public ServerTCP(int port) {
         super(port);
     }
 
+    public ServerTCP(int port, int backlog, InetAddress bindAddr){
+        super(port);
+        this.backlog = backlog;
+        this.bindAddr = bindAddr;
+    }
+
+    @Override
+    protected void notifyClientRemoval(ClientTCP client) {
+        client.preRemoval();
+    }
+
     @Override
     protected void start() throws IOException{
-        serverSocket = new ServerSocket(port, 50, null);
+        serverSocket = new ServerSocket(port, backlog, bindAddr);
         acceptClients();
     }
 
@@ -24,7 +39,7 @@ public class ServerTCP extends InternetServer<ClientTCP> {
         while (!serverSocket.isClosed()) {
             try {
                 Socket socket = serverSocket.accept();
-                ClientTCP clientTCP = new ClientTCP(socket);
+                ClientTCP clientTCP = new ClientTCP(true, socket);
                 addClient(clientTCP);
             } catch (IOException e) {
                 continue;

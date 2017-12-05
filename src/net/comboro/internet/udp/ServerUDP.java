@@ -1,7 +1,6 @@
 package net.comboro.internet.udp;
 
 import net.comboro.SerializableMessage;
-import net.comboro.Server;
 import net.comboro.internet.InternetServer;
 
 import java.io.ByteArrayInputStream;
@@ -62,5 +61,11 @@ import java.net.InetAddress;
     protected void stop() {
         datagramSocket.close();
     }
+
+	@Override
+	protected void notifyClientRemoval(ClientUDP client) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

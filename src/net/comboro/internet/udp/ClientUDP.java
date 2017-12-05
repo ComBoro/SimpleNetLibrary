@@ -52,7 +52,7 @@ import java.net.SocketException;
                 datagramSocket.receive(datagramPacket);
                 SerializableMessage message = Serializer.deserialize(datagramPacket.getData());
                 fireReceiveEvent(message);
-            } catch (IOException | ClassNotFoundException e){
+            } catch (IOException e){
 
             }
         });
