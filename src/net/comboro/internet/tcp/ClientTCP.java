@@ -75,6 +75,11 @@ public class ClientTCP extends Client {
 
         listeners.clear();
     }
+    
+    public FinalClientTCP getStatic() {
+    	if(!serverSide) throw new IllegalArgumentException("Not a serverside client");
+    	return new FinalClientTCP(this);
+    }
 
     public static ClientTCP create(InetAddress address, int port) throws IOException{
         Socket socket = new Socket(address, port);

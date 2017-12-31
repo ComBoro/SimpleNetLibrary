@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
@@ -20,6 +21,8 @@ abstract public class Client implements RSASecurePeer{
 	private RSA rsa = null;
 	private AES aes = null;
 	public RSAInformation rsaInformation = null;
+	public AESInformation aesInformation = null;
+	public UUID uuid;
 	
     protected RSAInformation serverRSA = null;
     
@@ -54,6 +57,9 @@ abstract public class Client implements RSASecurePeer{
     	if(!serverSide) {
     		rsa = new RSA();
     		setRSAInfomation(rsa.getInformation());
+    		uuid = UUID.randomUUID();
+    		aes = new AES(uuid.toString());
+    		aesInformation = new AESInformation(uuid.toString());
     	}
     }
 
@@ -126,6 +132,18 @@ abstract public class Client implements RSASecurePeer{
     	de = de.negate();
     	byte[] data = de.toByteArray();
     	return Serializer.deserialize(data);
+    }
+    
+    public AES getAES() {
+    	return aes;
+    }
+    
+    public UUID getUUID() {
+    	return uuid;
+    }
+    
+    public void setUUID(UUID uuid) {
+    	this.uuid = uuid;
     }
     
     @Override

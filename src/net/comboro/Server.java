@@ -171,7 +171,7 @@ public abstract class Server<T extends Client> {
 		};
     }
 
-    public void startServer() throws Exception {
+    public void startServer() {
         active = true;
         serverExecutor.execute(() -> {
             try {

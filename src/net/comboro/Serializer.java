@@ -6,19 +6,11 @@ import java.io.*;
 
 public class Serializer {
 
-    static ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    static ObjectOutputStream objectOutputStream = null;
-
-    static {
-        try {
-            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        } catch (IOException e) {
-            Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(),new IOException("Failed to initialize OOS",e));
-        }
-    }
-
     public static final byte[] serialize(@NotNull SerializableMessage<?> message) {
+    	ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    	ObjectOutputStream objectOutputStream = null;
         try {
+        	objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
 			objectOutputStream.writeObject(message);
 		} catch (IOException e) {
 			e.printStackTrace();
