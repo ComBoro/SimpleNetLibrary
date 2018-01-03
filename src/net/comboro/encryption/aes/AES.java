@@ -1,18 +1,19 @@
 package net.comboro.encryption.aes;
 
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
+import net.comboro.SerializableMessage;
+import net.comboro.Serializer;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 
 public class AES {
-	
-	private final Key key;
+
 	private Cipher cipher;
 	
 	public final String algorithm = this.getClass().getSimpleName();
@@ -20,7 +21,7 @@ public class AES {
 	private boolean trouble = false;
 
 	public AES(String keyVal) {
-		this.key = new SecretKeySpec(keyVal.getBytes(), algorithm);
+		Key key = new SecretKeySpec(keyVal.getBytes(), algorithm);
 		try {
 			cipher = Cipher.getInstance(algorithm);
 			cipher.init(Cipher.ENCRYPT_MODE, key);
@@ -37,6 +38,15 @@ public class AES {
 			return input;
 		}
 	}
+
+	public AESSecureMessage encrypt(SerializableMessage<?> serializableMessage){
+	    return new AESSecureMessage(this,serializableMessage);
+    }
+    public SerializableMessage<?> decrypt(AESSecureMessage message){
+        byte[] dataEn = message.toByteArray();
+        byte[] data = doFinal(dataEn);
+        return Serializer.deserialize(data);
+    }
 	
 	public boolean hasTrouble() {
 		return trouble;

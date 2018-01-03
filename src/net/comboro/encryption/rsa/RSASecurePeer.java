@@ -6,6 +6,6 @@ public interface RSASecurePeer{
 		
 	RSAInformation getRSAInformation();
 	
-	public SerializableMessage<?> decrypt(RSASecureMessage message);
+	SerializableMessage<?> decryptRSA(RSASecureMessage message);
 
 }

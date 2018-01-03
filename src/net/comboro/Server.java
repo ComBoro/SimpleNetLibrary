@@ -1,5 +1,11 @@
 package net.comboro;
 
+import net.comboro.encryption.aes.AESInformation;
+import net.comboro.encryption.rsa.RSA;
+import net.comboro.encryption.rsa.RSAInformation;
+import net.comboro.encryption.rsa.RSASecureMessage;
+import net.comboro.encryption.rsa.RSASecurePeer;
+
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -8,12 +14,6 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import net.comboro.encryption.aes.AESInformation;
-import net.comboro.encryption.rsa.RSA;
-import net.comboro.encryption.rsa.RSAInformation;
-import net.comboro.encryption.rsa.RSASecureMessage;
-import net.comboro.encryption.rsa.RSASecurePeer;
 
 public abstract class Server<T extends Client> {
 
@@ -83,7 +83,7 @@ public abstract class Server<T extends Client> {
                 @Override
                 public void onConnectionError(java.io.IOException io) {
                 	removeClient(client);
-                };
+                }
             });
             client.fireConnectEvent();
             
@@ -162,7 +162,7 @@ public abstract class Server<T extends Client> {
 			}
 			
 			@Override
-		    public SerializableMessage<?> decrypt(RSASecureMessage message) {
+		    public SerializableMessage<?> decryptRSA(RSASecureMessage message) {
 		    	BigInteger en = message.getNumber();
 		    	BigInteger de = rsa.decrypt(en);
 		    	byte[] data = de.toByteArray();
@@ -196,11 +196,11 @@ public abstract class Server<T extends Client> {
     abstract protected void stop();
 
     public boolean isActive() {
-        return new Boolean(active);
+        return active;
     }
 
     public List<T> getClientList() {
-        return new ArrayList<T>(clientList);
+        return new ArrayList<>(clientList);
     }
 
 }

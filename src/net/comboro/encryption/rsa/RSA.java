@@ -3,16 +3,15 @@ package net.comboro.encryption.rsa;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
-import static java.math.BigInteger.*;
+import static java.math.BigInteger.ONE;
+import static java.math.BigInteger.probablePrime;
 
 public class RSA {
 
 	private static final SecureRandom secureRandom = new SecureRandom();
-	public static final int defaultBytes = 2048; //1536
-	
-	private final BigInteger p,q; //primes
+	public static final int defaultBytes = 2048;
+
 	private final BigInteger modulus;
-	private final BigInteger toitent; // Eucler's function
 	private final BigInteger e = new BigInteger("65537"); // public key (2^16 + 1)
 	private final BigInteger d; // private key
 
@@ -21,10 +20,10 @@ public class RSA {
 	}
 	
 	public RSA(int bytes){
-		p = probablePrime(bytes/2, secureRandom);
-		q = probablePrime(bytes/2, secureRandom);
+		BigInteger p = probablePrime(bytes / 2, secureRandom);
+		BigInteger q = probablePrime(bytes / 2, secureRandom);
 		modulus = p.multiply(q);
-		toitent = p.subtract(ONE).multiply(q.subtract(ONE));
+		BigInteger toitent = p.subtract(ONE).multiply(q.subtract(ONE));
 		d = e.modInverse(toitent);
 	}
 	

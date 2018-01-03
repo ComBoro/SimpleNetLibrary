@@ -1,20 +1,20 @@
 package net.comboro;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
+import net.comboro.encryption.aes.AES;
+import net.comboro.encryption.aes.AESInformation;
+import net.comboro.encryption.aes.AESSecureMessage;
+import net.comboro.encryption.rsa.RSA;
+import net.comboro.encryption.rsa.RSAInformation;
+import net.comboro.encryption.rsa.RSASecureMessage;
+import net.comboro.encryption.rsa.RSASecurePeer;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
-
-import net.comboro.encryption.aes.AES;
-import net.comboro.encryption.aes.AESInformation;
-import net.comboro.encryption.rsa.RSA;
-import net.comboro.encryption.rsa.RSAInformation;
-import net.comboro.encryption.rsa.RSASecureMessage;
-import net.comboro.encryption.rsa.RSASecurePeer;
 
 abstract public class Client implements RSASecurePeer{
 
@@ -63,6 +63,10 @@ abstract public class Client implements RSASecurePeer{
     	}
     }
 
+    public void sendEncrypted(SerializableMessage<?> message){
+        send(aes.encrypt(message));
+    }
+
     protected List<ClientListener> listeners = new ArrayList<>();
 
     public boolean addListener(ClientListener listener){
@@ -92,22 +96,23 @@ abstract public class Client implements RSASecurePeer{
     		
         	if(message instanceof RSASecureMessage) {
         		RSASecureMessage sm = (RSASecureMessage) message;
-        		message = Client.this.decrypt(sm);
-        	}
-    		
-    		if(message.getData() instanceof RSAInformation) {
-    			System.out.println("Client : Server RSA Information received");
+        		message = Client.this.decryptRSA(sm);
+            } else if (message instanceof AESSecureMessage) {
+        	    AESSecureMessage sm = (AESSecureMessage) message;
+        	    message = aes.decrypt(sm);
+            }
+
+            if(message.getData() instanceof RSAInformation) {
         		serverRSA = (RSAInformation) message.getData();
-        		RSAInformation clientRSA = ((RSASecurePeer) this).getRSAInformation();
+        		RSAInformation clientRSA = this.getRSAInformation();
         		        		
         		SerializableMessage<RSAInformation> respond = new SerializableMessage<>(clientRSA);
         		send(respond);
-        		System.out.println("Client : Client RSA Send");
         		return;
     		} else if (message.getData() instanceof AESInformation) {
     			String key = ((AESInformation) message.getData()).getKey();
-    			System.out.println("Received AES key : " + key);
     			aes = new AES(key);
+    			aesInformation = new AESInformation(key);
     			return;
     		}
     	}
@@ -126,7 +131,7 @@ abstract public class Client implements RSASecurePeer{
     }
     
     @Override
-    public SerializableMessage<?> decrypt(RSASecureMessage message) {
+    public SerializableMessage<?> decryptRSA(RSASecureMessage message) {
     	BigInteger en = message.getNumber();
     	BigInteger de = rsa.decrypt(en);
     	de = de.negate();
@@ -156,4 +161,12 @@ abstract public class Client implements RSASecurePeer{
     }
 
     public abstract void send(@NotNull SerializableMessage<?> message);
+
+    @Override
+    public boolean equals(Object obj) {
+        if ((null == obj) || (obj.getClass() != Client.class))
+            return false;
+        Client other = (Client) obj;
+        return this.uuid.equals(other.uuid);
+    }
 }

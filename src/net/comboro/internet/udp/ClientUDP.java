@@ -5,7 +5,7 @@ import net.comboro.Client;
 import net.comboro.SerializableMessage;
 import net.comboro.Serializer;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -15,8 +15,6 @@ import java.net.SocketException;
  * Created by ComBoro on 6/12/2017.
  */
 @Deprecated public class ClientUDP extends Client{
-
-    private Thread thread;
 
     protected DatagramSocket datagramSocket;
     protected InetAddress inetAddress;
@@ -46,13 +44,13 @@ import java.net.SocketException;
     }
 
     private void receive(){
-        thread = new Thread(()->{
-            try{
+        Thread thread = new Thread(() -> {
+            try {
                 DatagramPacket datagramPacket = new DatagramPacket(new byte[65_535], 65_535);
                 datagramSocket.receive(datagramPacket);
                 SerializableMessage message = Serializer.deserialize(datagramPacket.getData());
                 fireReceiveEvent(message);
-            } catch (IOException e){
+            } catch (IOException e) {
 
             }
         });

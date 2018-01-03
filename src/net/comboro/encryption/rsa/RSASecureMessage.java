@@ -1,10 +1,10 @@
 package net.comboro.encryption.rsa;
 
-import java.math.BigInteger;
-
 import net.comboro.SerializableMessage;
 import net.comboro.Serializer;
 import net.comboro.encryption.EncryptedMessage;
+
+import java.math.BigInteger;
 
 public class RSASecureMessage extends EncryptedMessage {
 	private static final long serialVersionUID = 892224637500521515L;
@@ -17,10 +17,6 @@ public class RSASecureMessage extends EncryptedMessage {
 		number = number.negate();
 		number = RSA.encrypt(number, receiverRSA);
 		this.data = number.toString();
-	}
-	
-	public BigInteger getNumber() {
-		return new BigInteger(data);
 	}
 
 }

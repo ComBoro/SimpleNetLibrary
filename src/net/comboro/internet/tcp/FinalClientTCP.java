@@ -19,4 +19,11 @@ public class FinalClientTCP {
 		client.addListener(listener);
 	}
 
+    @Override
+    public boolean equals(Object obj) {
+        if ((null == obj) || (obj.getClass() != FinalClientTCP.class))
+            return false;
+        FinalClientTCP other = (FinalClientTCP) obj;
+        return client.equals(other.client);
+    }
 }
