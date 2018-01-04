@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/cmbrLib.iml" filepath="$PROJECT_DIR$/cmbrLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/cmbrNetLibrary.iml" filepath="$PROJECT_DIR$/.idea/cmbrNetLibrary.iml" />
     </modules>
   </component>
 </project>
