@@ -1,6 +1,5 @@
 package net.comboro.internet.udp;
 
-import com.sun.istack.internal.NotNull;
 import net.comboro.Client;
 import net.comboro.SerializableMessage;
 import net.comboro.Serializer;
@@ -32,7 +31,7 @@ import java.net.SocketException;
     }
 
     @Override
-    public void send(@NotNull SerializableMessage message) {
+    public void send(SerializableMessage message) {
         try {
             byte[] data = Serializer.serialize(message);
             DatagramPacket packet = new DatagramPacket(data, data.length, inetAddress, port);

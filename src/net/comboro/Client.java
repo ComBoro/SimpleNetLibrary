@@ -1,7 +1,5 @@
 package net.comboro;
 
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 import net.comboro.encryption.aes.AES;
 import net.comboro.encryption.aes.AESInformation;
 import net.comboro.encryption.aes.AESSecureMessage;
@@ -39,13 +37,13 @@ abstract public class Client implements RSASecurePeer{
 
             @Override public void onConnect() {}
             
-            @Override public void onConnectionError(@Nullable IOException io) {}
+            @Override public void onConnectionError(IOException io) {}
         }
 
         void onReceive(SerializableMessage<?> message);
         void onConnect();
         void onDisconnect();
-        void onConnectionError(@Nullable IOException io);
+        void onConnectionError(IOException io);
     }
     
     public Client() {
@@ -85,11 +83,11 @@ abstract public class Client implements RSASecurePeer{
         listeners.forEach(e -> e.onConnect());
     }
     
-    public void fireConnectionError(@Nullable IOException io){
+    public void fireConnectionError(IOException io){
     	 listeners.forEach(e -> e.onConnectionError(io));
     }
 
-    public void fireReceiveEvent(@NotNull SerializableMessage<?> message) {
+    public void fireReceiveEvent(SerializableMessage<?> message) {
             	
     	if(!serverSide) {
     		// Decrypt
@@ -123,7 +121,7 @@ abstract public class Client implements RSASecurePeer{
     }
     
     public boolean hasTrouble() {
-    	return new Boolean(trouble);
+    	return Boolean.valueOf(trouble);
     }
     
     public Exception getLastException() {
@@ -160,7 +158,7 @@ abstract public class Client implements RSASecurePeer{
     	this.rsaInformation = rsa;
     }
 
-    public abstract void send(@NotNull SerializableMessage<?> message);
+    public abstract void send(SerializableMessage<?> message);
 
     @Override
     public boolean equals(Object obj) {

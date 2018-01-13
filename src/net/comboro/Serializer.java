@@ -1,12 +1,10 @@
 package net.comboro;
 
-import com.sun.istack.internal.NotNull;
-
 import java.io.*;
 
 public class Serializer {
 
-    public static byte[] serialize(@NotNull SerializableMessage<?> message) {
+    public static byte[] serialize(SerializableMessage<?> message) {
     	ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
     	ObjectOutputStream objectOutputStream = null;
         try {
@@ -32,7 +30,7 @@ public class Serializer {
         return arr;
     }
 
-    public static SerializableMessage<?> deserialize(@NotNull byte[] data){
+    public static SerializableMessage<?> deserialize(byte[] data){
         try {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);

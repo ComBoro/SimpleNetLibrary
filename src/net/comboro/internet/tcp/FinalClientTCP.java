@@ -5,7 +5,7 @@ import net.comboro.SerializableMessage;
 
 public class FinalClientTCP {
 	
-	private ClientTCP client;
+	public ClientTCP client;
 
 	public FinalClientTCP(ClientTCP client) {
 		this.client = client;
