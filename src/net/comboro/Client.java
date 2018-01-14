@@ -9,6 +9,7 @@ import net.comboro.encryption.rsa.RSASecureMessage;
 import net.comboro.encryption.rsa.RSASecurePeer;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,9 +56,6 @@ abstract public class Client implements RSASecurePeer{
     	if(!serverSide) {
     		rsa = new RSA();
     		setRSAInfomation(rsa.getInformation());
-    		uuid = UUID.randomUUID();
-    		aes = new AES(uuid.toString());
-    		aesInformation = new AESInformation(uuid.toString());
     	}
     }
 
@@ -109,6 +107,7 @@ abstract public class Client implements RSASecurePeer{
         		return;
     		} else if (message.getData() instanceof AESInformation) {
     			String key = ((AESInformation) message.getData()).getKey();
+    			uuid = UUID.fromString(key);
     			aes = new AES(key);
     			aesInformation = new AESInformation(key);
     			return;
@@ -158,7 +157,16 @@ abstract public class Client implements RSASecurePeer{
     	this.rsaInformation = rsa;
     }
 
+    public void setAesInformation(String key){
+        this.aesInformation = new AESInformation(key);
+        this.aes = new AES(key);
+    }
+
     public abstract void send(SerializableMessage<?> message);
+
+    public <M extends Serializable> void send(M message){
+        this.send(new SerializableMessage<>(message));
+    }
 
     @Override
     public boolean equals(Object obj) {

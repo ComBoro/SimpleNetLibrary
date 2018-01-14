@@ -3,6 +3,8 @@ package net.comboro.internet.tcp;
 import net.comboro.Client.ClientListener;
 import net.comboro.SerializableMessage;
 
+import java.io.Serializable;
+
 public class FinalClientTCP {
 	
 	public ClientTCP client;
@@ -14,6 +16,10 @@ public class FinalClientTCP {
 	public void send(SerializableMessage<?> message){
 		client.send(message);
 	}
+
+	public <M extends Serializable> void send(M message){
+	    this.send(new SerializableMessage<>(message));
+    }
 	
 	public void addListener(ClientListener listener) {
 		client.addListener(listener);

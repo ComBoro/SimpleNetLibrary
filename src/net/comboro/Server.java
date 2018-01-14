@@ -70,6 +70,10 @@ public abstract class Server<T extends Client> {
         clientList.forEach(e -> e.send(message));
     }
 
+    public <M extends Serializable> void sendAll(M message){
+        clientList.parallelStream().forEach(e -> e.send(message));
+    }
+
     protected boolean addClient(T client) {
         boolean result;
         synchronized (lock) {
@@ -109,8 +113,11 @@ public abstract class Server<T extends Client> {
     		System.out.println("Received client RSA. Generating AES key");
     		RSAInformation clientRSA = (RSAInformation) message.getData();
     		RSAInformation serverRSA = securePeer.getRSAInformation();
-    		String key = UUID.randomUUID().toString();
+    		UUID uuid = UUID.randomUUID();
+    		String key = uuid.toString();
+    		client.setUUID(uuid);
     		AESInformation aesInf = new AESInformation(key);
+    		client.setAesInformation(key);
     		RSASecureMessage sm = new RSASecureMessage(clientRSA, serverRSA, new SerializableMessage<>(aesInf));
     		client.send(sm);
     		System.out.println("AES information send. Key = " + key);

@@ -2,6 +2,8 @@ package net.comboro.internet.tcp;
 
 import net.comboro.Client;
 import net.comboro.SerializableMessage;
+import net.comboro.encryption.rsa.RSAInformation;
+import net.comboro.encryption.rsa.RSASecurePeer;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -10,7 +12,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Objects;
 
-public class ClientTCP extends Client {
+public class ClientTCP extends Client{
 
     private Socket socket;
     private ObjectOutputStream outputStream;
@@ -24,6 +26,10 @@ public class ClientTCP extends Client {
         try{
             this.outputStream = new ObjectOutputStream(socket.getOutputStream());
             this.inputStream = new ObjectInputStream(socket.getInputStream());
+
+            // Send RSA Information
+            this.<RSAInformation>send(getRSAInformation());
+
             this.receive();
         } catch (IOException io){
             this.trouble = true;
@@ -34,7 +40,8 @@ public class ClientTCP extends Client {
     	this(false, socket);
     }
 
-    @Override public void send(SerializableMessage message){
+    @Override
+    public void send(SerializableMessage message){
         try {
             if(Objects.nonNull(outputStream))
                 outputStream.writeObject(message);
@@ -77,7 +84,7 @@ public class ClientTCP extends Client {
     }
     
     public FinalClientTCP getStatic() {
-    	if(!serverSide) throw new IllegalArgumentException("Not a serverside client");
+    	if(!serverSide) throw new IllegalArgumentException("Not a server-sided client");
     	return new FinalClientTCP(this);
     }
 
@@ -90,4 +97,11 @@ public class ClientTCP extends Client {
     	return thread.getName();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if ((null == obj) || (obj.getClass() != ClientTCP.class))
+            return false;
+        ClientTCP other = (ClientTCP) obj;
+        return this.uuid.equals(other.uuid);
+    }
 }
