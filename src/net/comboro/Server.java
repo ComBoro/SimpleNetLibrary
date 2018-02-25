@@ -60,6 +60,7 @@ public abstract class Server<T extends Client> {
 
     protected Server() {
         serverExecutor = Executors.newSingleThreadExecutor();
+        setSecure(true);
     }
 
     @Deprecated protected Executor getExecutor() {
@@ -95,8 +96,7 @@ public abstract class Server<T extends Client> {
             	RSAInformation rsaInf = securePeer.getRSAInformation();
             	SerializableMessage<RSAInformation> rsaMessage = new SerializableMessage<>(rsaInf);
             	client.send(rsaMessage);
-            	System.out.println("RSA Information send");
-            } 
+            }
             
             lock.notifyAll();
         }
@@ -108,19 +108,24 @@ public abstract class Server<T extends Client> {
     }
 
     public void fireClientInputEvent(T client, SerializableMessage<?> message){
-    	
-    	if(message.getData() instanceof RSAInformation) {
-    		System.out.println("Received client RSA. Generating AES key");
+
+
+    	if(message.getData() instanceof RSAInformation && client.getRSAInformation() == null) {
     		RSAInformation clientRSA = (RSAInformation) message.getData();
     		RSAInformation serverRSA = securePeer.getRSAInformation();
+
+    		//RSA
+    		client.setRSAInfomation(clientRSA);
+
+    		//AES
     		UUID uuid = UUID.randomUUID();
     		String key = uuid.toString();
     		client.setUUID(uuid);
     		AESInformation aesInf = new AESInformation(key);
     		client.setAesInformation(key);
+
     		RSASecureMessage sm = new RSASecureMessage(clientRSA, serverRSA, new SerializableMessage<>(aesInf));
     		client.send(sm);
-    		System.out.println("AES information send. Key = " + key);
     		return;
     	} 
     	
@@ -153,14 +158,16 @@ public abstract class Server<T extends Client> {
     }
     
     public void setSecure(boolean secure) {
-    	if(isActive()) 
+    	if(isActive())
     		throw new IllegalArgumentException("Server is active");
-    	makeSecure();
+    	if(!isSecure())
+    	    makeSecure();
     	this.secure = secure;
     }
     
     private void makeSecure() {
     	rsa = new RSA();
+
     	securePeer = new RSASecurePeer() {
 			
 			@Override

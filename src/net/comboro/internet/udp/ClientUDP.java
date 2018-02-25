@@ -65,6 +65,11 @@ import java.net.SocketException;
     }
 
     @Override
+    protected void onConnectionTermination() throws IOException {
+
+    }
+
+    @Override
     public boolean equals(Object obj) {
         ClientUDP other = (ClientUDP) obj;
         return inetAddress.toString().equals(other.inetAddress.toString()) && this.port == other.port;

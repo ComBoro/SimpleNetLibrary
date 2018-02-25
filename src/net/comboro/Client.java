@@ -56,6 +56,8 @@ abstract public class Client implements RSASecurePeer{
     	if(!serverSide) {
     		rsa = new RSA();
     		setRSAInfomation(rsa.getInformation());
+            // Send RSA Information
+            this.<RSAInformation>send(getRSAInformation());
     	}
     }
 
@@ -101,7 +103,7 @@ abstract public class Client implements RSASecurePeer{
             if(message.getData() instanceof RSAInformation) {
         		serverRSA = (RSAInformation) message.getData();
         		RSAInformation clientRSA = this.getRSAInformation();
-        		        		
+
         		SerializableMessage<RSAInformation> respond = new SerializableMessage<>(clientRSA);
         		send(respond);
         		return;
@@ -118,6 +120,18 @@ abstract public class Client implements RSASecurePeer{
     		cl.onReceive(message);
     	}    	
     }
+
+    public void closeConnection(){
+        if(serverSide) return;
+        try{
+            onConnectionTermination();
+        } catch (IOException io){
+            trouble = true;
+            lastException = io;
+        }
+    }
+
+    protected abstract void onConnectionTermination() throws IOException;
     
     public boolean hasTrouble() {
     	return Boolean.valueOf(trouble);

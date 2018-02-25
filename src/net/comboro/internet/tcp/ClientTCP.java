@@ -27,9 +27,6 @@ public class ClientTCP extends Client{
             this.outputStream = new ObjectOutputStream(socket.getOutputStream());
             this.inputStream = new ObjectInputStream(socket.getInputStream());
 
-            // Send RSA Information
-            this.<RSAInformation>send(getRSAInformation());
-
             this.receive();
         } catch (IOException io){
             this.trouble = true;
@@ -52,12 +49,15 @@ public class ClientTCP extends Client{
 
     private void receive(){
         thread = new Thread(() -> {
+            this.thread.setName(socket.getInetAddress().getHostAddress());
+
             while(!(thread.isInterrupted() || hasTrouble() || socket.isInputShutdown() || socket.isClosed())){
                 try {
                     SerializableMessage<?> message = (SerializableMessage<?>) inputStream.readObject();
                     fireReceiveEvent(message);
                 } catch (IOException | ClassNotFoundException | ClassCastException e) {
                     trouble = true;
+                    lastException = e;
                     if(e instanceof IOException) fireConnectionError((IOException)e);
                 }
             }
@@ -95,6 +95,12 @@ public class ClientTCP extends Client{
      
     public String getThreadName() {
     	return thread.getName();
+    }
+
+    @Override
+    protected void onConnectionTermination() throws IOException {
+        thread.interrupt();
+        preRemoval();
     }
 
     @Override
