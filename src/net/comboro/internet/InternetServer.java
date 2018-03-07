@@ -5,15 +5,21 @@ import net.comboro.Server;
 
 public abstract class InternetServer<T extends Client> extends Server<T>{
 
-    protected final int port;
+    protected int port;
 
     public InternetServer(int port){
     	super();
         this.port = port;
     }
 
-    public final int getPort(){
+    public int getPort(){
         return port;
+    }
+
+    protected void setPort(int port){
+        if(super.isActive())
+            return;
+        this.port = port;
     }
 
 }

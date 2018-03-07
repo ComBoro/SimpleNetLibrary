@@ -56,4 +56,10 @@ public class ServerTCP extends InternetServer<ClientTCP> {
         }
     }
 
+    @Override
+    public int getPort(){
+        if(serverSocket==null) return port;
+        return serverSocket.getLocalPort();
+    }
+
 }

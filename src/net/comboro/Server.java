@@ -54,6 +54,9 @@ public abstract class Server<T extends Client> {
 
     protected ExecutorService serverExecutor;
 
+    protected boolean hasTrouble = false;
+    protected Exception lastException = null;
+
     private boolean active = false, secure = false;
     protected List<T> clientList = new ArrayList<>();
     protected List<ServerListener<T>> serverListeners = new ArrayList<>();
@@ -192,6 +195,9 @@ public abstract class Server<T extends Client> {
                 serverListeners.forEach(e -> e.onServerStart());
                 start();
             } catch (Exception e) {
+                hasTrouble = true;
+                lastException = e;
+                active = false;
                 serverListeners.forEach(e1 -> e1.onServerStartError(e));
             }
         });
@@ -209,8 +215,12 @@ public abstract class Server<T extends Client> {
 
     abstract protected void stop();
 
+    public boolean hasTrouble(){
+        return Boolean.valueOf(hasTrouble);
+    }
+
     public boolean isActive() {
-        return active;
+        return Boolean.valueOf(active);
     }
 
     public List<T> getClientList() {
