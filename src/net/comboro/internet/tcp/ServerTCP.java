@@ -41,7 +41,7 @@ public class ServerTCP extends InternetServer<ClientTCP> {
                 Socket socket = serverSocket.accept();
                 ClientTCP clientTCP = new ClientTCP(true, socket);
                 addClient(clientTCP);
-            } catch (IOException e) {
+            } catch (Throwable e) {
                 continue;
             }
         }

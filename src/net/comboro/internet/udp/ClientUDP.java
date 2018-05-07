@@ -31,12 +31,11 @@ import java.net.SocketException;
     }
 
     @Override
-    public void send(SerializableMessage message) {
+    public void send(SerializableMessage<?> message) {
         try {
             byte[] data = Serializer.serialize(message);
             DatagramPacket packet = new DatagramPacket(data, data.length, inetAddress, port);
             datagramSocket.send(packet);
-            System.out.println("send");
         } catch (IOException e) {
             Thread.currentThread().getUncaughtExceptionHandler().uncaughtException(Thread.currentThread(),new IOException("Error serializing message",e));
         }
@@ -47,7 +46,7 @@ import java.net.SocketException;
             try {
                 DatagramPacket datagramPacket = new DatagramPacket(new byte[65_535], 65_535);
                 datagramSocket.receive(datagramPacket);
-                SerializableMessage message = Serializer.deserialize(datagramPacket.getData());
+                SerializableMessage<?> message = Serializer.deserialize(datagramPacket.getData());
                 fireReceiveEvent(message);
             } catch (IOException e) {
 

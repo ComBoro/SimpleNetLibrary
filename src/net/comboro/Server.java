@@ -1,6 +1,7 @@
 package net.comboro;
 
 import net.comboro.encryption.aes.AESInformation;
+import net.comboro.encryption.aes.AESSecureMessage;
 import net.comboro.encryption.rsa.RSA;
 import net.comboro.encryption.rsa.RSAInformation;
 import net.comboro.encryption.rsa.RSASecureMessage;
@@ -8,6 +9,7 @@ import net.comboro.encryption.rsa.RSASecurePeer;
 
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -29,7 +31,7 @@ public abstract class Server<T extends Client> {
 
             @Override public void onClientConnect(T client) {}
 
-            @Override public void onClientInput(T client, SerializableMessage message) {}
+            @Override public void onClientInput(T client, SerializableMessage<?> message) {}
 
             @Override public void onClientDisconnect(T client) {}
         }
@@ -42,7 +44,7 @@ public abstract class Server<T extends Client> {
 
         void onClientConnect(T client);
 
-        void onClientInput(T client, SerializableMessage message);
+        void onClientInput(T client, SerializableMessage<?> message);
 
         void onClientDisconnect(T client);
     }
@@ -81,8 +83,8 @@ public abstract class Server<T extends Client> {
     protected boolean addClient(T client) {
         boolean result;
         synchronized (lock) {
-            serverListeners.forEach(e -> e.onClientConnect(client));
             result = clientList.add(client);
+            serverListeners.forEach(e -> e.onClientConnect(client));
             client.addListener(new Client.ClientListener.ClientAdapter(){
                 @Override
                 public void onReceive(SerializableMessage<?> message) {
@@ -112,7 +114,6 @@ public abstract class Server<T extends Client> {
 
     public void fireClientInputEvent(T client, SerializableMessage<?> message){
 
-
     	if(message.getData() instanceof RSAInformation && client.getRSAInformation() == null) {
     		RSAInformation clientRSA = (RSAInformation) message.getData();
     		RSAInformation serverRSA = securePeer.getRSAInformation();
@@ -121,16 +122,27 @@ public abstract class Server<T extends Client> {
     		client.setRSAInfomation(clientRSA);
 
     		//AES
-    		UUID uuid = UUID.randomUUID();
-    		String key = uuid.toString();
-    		client.setUUID(uuid);
-    		AESInformation aesInf = new AESInformation(key);
-    		client.setAesInformation(key);
+            SecureRandom secureRandom = new SecureRandom();
+            byte[] bytes = new byte[16];
+            secureRandom.nextBytes(bytes);
+
+    		AESInformation aesInf = new AESInformation(bytes);
+    		client.setAesInformation(bytes);
 
     		RSASecureMessage sm = new RSASecureMessage(clientRSA, serverRSA, new SerializableMessage<>(aesInf));
     		client.send(sm);
     		return;
-    	} 
+    	}
+
+    	if(message instanceof AESSecureMessage){
+            AESSecureMessage aesSecureMessage = (AESSecureMessage) message;
+    	    SerializableMessage decrypted = client.getAES().decrypt(aesSecureMessage);
+    	    fireClientInputEvent(client, decrypted);
+        } else if(message instanceof RSASecureMessage){
+    	    RSASecureMessage rsaData = (RSASecureMessage) message;
+    	    SerializableMessage decrypted = client.decryptRSA(rsaData);
+    	    fireClientInputEvent(client, decrypted);
+        } else
     	
         serverListeners.forEach(e -> e.onClientInput(client, message));
     }
@@ -144,7 +156,8 @@ public abstract class Server<T extends Client> {
         synchronized (lock) {
             client.fireDisconnectEvent();
             result = clientList.remove(client);
-            serverListeners.forEach( e -> e.onClientDisconnect(client));
+            if(result)
+                serverListeners.forEach( e -> e.onClientDisconnect(client));
             lock.notifyAll();
         }
         return result;
@@ -209,6 +222,7 @@ public abstract class Server<T extends Client> {
         serverExecutor.shutdown();
         serverListeners.forEach(e -> e.onServerStop());
         serverListeners.clear();
+        serverExecutor.shutdownNow();
     }
 
     abstract protected void start() throws Exception;

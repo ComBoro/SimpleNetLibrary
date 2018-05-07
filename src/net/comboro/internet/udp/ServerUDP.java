@@ -35,7 +35,7 @@ import java.net.InetAddress;
 
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(datagramPacket.getData());
             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-            SerializableMessage serializableMessage = (SerializableMessage) objectInputStream.readObject();
+            SerializableMessage<?> serializableMessage = (SerializableMessage<?>) objectInputStream.readObject();
 
             InetAddress inetAddress = datagramPacket.getAddress();
             int port = datagramPacket.getPort();

@@ -3,12 +3,17 @@ package net.comboro;
 import java.io.Serializable;
 
 public class TaggedMessage<D extends Serializable> extends SerializableMessage<D>{
-
-    private final String[] tags;
+	private static final long serialVersionUID = -3207683131463079673L;
+	
+	private final String[] tags;
 
     public TaggedMessage(SerializableMessage<D> message, String... tags){
-        super(message.getData());
-        this.tags = tags;
+        this(message.getData());
+    }
+    
+    public TaggedMessage(D message, String... tags) {
+    	super(message);
+    	this.tags = tags;
     }
 
     public String[] getTags(){

@@ -13,16 +13,14 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 abstract public class Client implements RSASecurePeer{
 
-	private RSA rsa = null;
-	private AES aes = null;
+	RSA rsa = null;
+	AES aes = null;
 	public RSAInformation rsaInformation = null;
 	public AESInformation aesInformation = null;
-	public UUID uuid;
-	
+
     protected RSAInformation serverRSA = null;
     
     protected boolean trouble = false, serverSide;
@@ -64,6 +62,8 @@ abstract public class Client implements RSASecurePeer{
     public void sendEncrypted(SerializableMessage<?> message){
         send(aes.encrypt(message));
     }
+
+    public <M extends Serializable> void sendEncrypted(M message){this.sendEncrypted(new SerializableMessage<>(message));}
 
     protected List<ClientListener> listeners = new ArrayList<>();
 
@@ -108,8 +108,7 @@ abstract public class Client implements RSASecurePeer{
         		send(respond);
         		return;
     		} else if (message.getData() instanceof AESInformation) {
-    			String key = ((AESInformation) message.getData()).getKey();
-    			uuid = UUID.fromString(key);
+    			byte[] key = ((AESInformation) message.getData()).getKey();
     			aes = new AES(key);
     			aesInformation = new AESInformation(key);
     			return;
@@ -154,14 +153,6 @@ abstract public class Client implements RSASecurePeer{
     	return aes;
     }
     
-    public UUID getUUID() {
-    	return uuid;
-    }
-    
-    public void setUUID(UUID uuid) {
-    	this.uuid = uuid;
-    }
-    
     @Override
     public RSAInformation getRSAInformation() {
     	return rsaInformation;
@@ -171,9 +162,13 @@ abstract public class Client implements RSASecurePeer{
     	this.rsaInformation = rsa;
     }
 
-    public void setAesInformation(String key){
+    public void setAesInformation(byte[] key){
         this.aesInformation = new AESInformation(key);
         this.aes = new AES(key);
+    }
+
+    public AESInformation getAESInformation(){
+        return aesInformation;
     }
 
     public abstract void send(SerializableMessage<?> message);
@@ -187,6 +182,6 @@ abstract public class Client implements RSASecurePeer{
         if ((null == obj) || (obj.getClass() != Client.class))
             return false;
         Client other = (Client) obj;
-        return this.uuid.equals(other.uuid);
+        return this.rsa.equals(other.rsa);
     }
 }

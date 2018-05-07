@@ -46,5 +46,12 @@ public class RSA {
 	static public BigInteger encrypt(BigInteger toEncrypt, RSAInformation information) {
 		return encrypt(toEncrypt, information.getPublicKey(), information.getModulus());
 	}
-	
+
+	@Override
+	public boolean equals(Object obj) {
+		if ((null == obj) || (obj.getClass() != RSA.class))
+			return false;
+		RSA other = (RSA) obj;
+		return modulus.equals(other.modulus);
+	}
 }

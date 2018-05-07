@@ -1,4 +1,4 @@
-module cmbrNetLibrary {
+module SimpleNetLibrary {
     requires java.base;
 
     exports net.comboro;

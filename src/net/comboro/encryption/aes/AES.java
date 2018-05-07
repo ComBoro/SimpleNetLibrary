@@ -14,37 +14,50 @@ import java.security.NoSuchAlgorithmException;
 
 public class AES {
 
-	private Cipher cipher;
+	private Cipher cipherEn, cipherDe;
 	
 	public final String algorithm = this.getClass().getSimpleName();
 	
 	private boolean trouble = false;
 
-	public AES(String keyVal) {
-		Key key = new SecretKeySpec(keyVal.getBytes(), algorithm);
+	public AES(byte[] keyVal) {
+		Key key = new SecretKeySpec(keyVal, algorithm);
 		try {
-			cipher = Cipher.getInstance(algorithm);
-			cipher.init(Cipher.ENCRYPT_MODE, key);
+			cipherEn = Cipher.getInstance(algorithm);
+			cipherEn.init(Cipher.ENCRYPT_MODE, key);
+
+			cipherDe = Cipher.getInstance(algorithm);
+			cipherDe.init(Cipher.DECRYPT_MODE, key);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+			e.printStackTrace();
 			trouble = true;
 		}
 	}
 	
-	public byte[] doFinal(byte[] input) {
+	public byte[] doFinalEn(byte[] input) {
 		try {
-			return cipher.doFinal(input);
+			return cipherEn.doFinal(input);
 		} catch (IllegalBlockSizeException | BadPaddingException e) {
 			trouble = true;
 			return input;
 		}
 	}
 
+    public byte[] doFinalDe(byte[] input) {
+        try {
+            return cipherDe.doFinal(input);
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
+            trouble = true;
+            return input;
+        }
+    }
+
 	public AESSecureMessage encrypt(SerializableMessage<?> serializableMessage){
 	    return new AESSecureMessage(this,serializableMessage);
     }
     public SerializableMessage<?> decrypt(AESSecureMessage message){
         byte[] dataEn = message.toByteArray();
-        byte[] data = doFinal(dataEn);
+        byte[] data = doFinalDe(dataEn);
         return Serializer.deserialize(data);
     }
 	

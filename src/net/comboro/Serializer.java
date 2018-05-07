@@ -10,7 +10,7 @@ public class Serializer {
         try {
         	objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
             if(message instanceof TaggedMessage){
-                TaggedMessage tagged = (TaggedMessage) message;
+                TaggedMessage<?> tagged = (TaggedMessage<?>) message;
                 objectOutputStream.writeObject(tagged.getData());
                 objectOutputStream.writeObject(tagged.getTags());
             } else {
@@ -37,7 +37,7 @@ public class Serializer {
 			SerializableMessage<?> message = (SerializableMessage<?>) objectInputStream.readObject();
 			if(message instanceof TaggedMessage){
 			    String[] tags = (String[]) objectInputStream.readObject();
-			    return new TaggedMessage(message, tags);
+			    return new TaggedMessage<>(message, tags);
             }
             return message;
 		} catch (IOException | ClassNotFoundException e) {
